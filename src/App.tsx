@@ -1,35 +1,51 @@
-
 import "./App.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { signInWithGoogle } from "./firebaseConfig";
-import  HomeOrdersComponet  from "./components/HomeOrdersComponent/HomeOrdersComponent"
-import OrderDetailsComponet from "./components/OrderDetailsComponet/OrderDetailsComponet"
+import HomeOrdersComponent from "./components/HomeOrdersComponent/HomeOrdersComponent";
+import OrderDetailsComponent from "./components/OrderDetailsComponet/OrderDetailsComponet";
 
 const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); // State to track authentication status
+  const auth = getAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState<
+    "loading" | "logged" | "loggedout"
+  >("loading");
 
-  // Function to handle sign-in
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsLoggedIn("logged");
+      } else {
+        setIsLoggedIn("loggedout");
+      }
+    });
+
+    // Cleanup the subscription on unmount
+    return () => unsubscribe();
+  }, [auth]);
+
   const handleSignIn = () => {
-    signInWithGoogle()
-      .then(() => {
-        setIsLoggedIn(true); // Update authentication status
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    signInWithGoogle();
   };
 
   return (
     <div className="App">
-      <header className="App-header"></header>
-      {isLoggedIn ? (
+      {isLoggedIn === "loading" ? (
+        <p>Loading...</p>
+      ) : isLoggedIn === "logged" ? (
         <Routes>
-          <Route path="/" element={<HomeOrdersComponet />} />
-          <Route path="/details" element={<OrderDetailsComponet />} />
+          <Route path="/" element={<HomeOrdersComponent />} />
+          <Route
+            path={"/details/:orderId"}
+            element={<OrderDetailsComponent />}
+          />
         </Routes>
       ) : (
-        <button className="login-with-google-btn" onClick={handleSignIn}>
+        <button
+          className="login-with-google-btn"
+          onClick={() => signInWithGoogle()}
+        >
           Sign In With Google
         </button>
       )}
