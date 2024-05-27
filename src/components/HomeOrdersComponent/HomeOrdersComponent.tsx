@@ -1,56 +1,10 @@
+import "./homeOrdersComponent.css";
 import React, { useEffect, useState } from "react";
 import { writeBatch, doc, collection, getDocs } from "firebase/firestore";
 import { firestore } from "../../firebaseConfig";
 import Box from "@mui/material/Box";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-
-// const rows = [
-//   {
-//     id: 1,
-//     startDate: "07.05.2024 wtorek",
-//     endDate: "08.05.2024 śr",
-//     deliveryTime: "14:00",
-//     pickUpTime: "15:00",
-//     assoType: "Zamek A",
-//     IsConfirmed: true,
-//   },
-//   {
-//     id: 2,
-//     startDate: "07.05.2024 wtorek",
-//     endDate: "08.05.2024 śr",
-//     deliveryTime: "14:00",
-//     pickUpTime: "15:00",
-//     assoType: "Zamek A",
-//     IsConfirmed: true,
-//   },
-//   {
-//     id: 3,
-//     startDate: "07.05.2024 wtorek",
-//     endDate: "08.05.2024 śr",
-//     deliveryTime: "14:00",
-//     pickUpTime: "15:00",
-//     assoType: "Zamek A",
-//     IsConfirmed: true,
-//   },
-//   {
-//     id: 4,
-//     startDate: "07.05.2024 wtorek",
-//     endDate: "08.05.2024 śr",
-//     deliveryTime: "14:00",
-//     pickUpTime: "15:00",
-//     assoType: "Zamek A",
-//     IsConfirmed: true,
-//   },
-//   {
-//     id: 5,
-//     startDate: "07.05.2024 wtorek",
-//     endDate: "08.05.2024 śr",
-//     deliveryTime: "14:00",
-//     pickUpTime: "15:00",
-//     assoType: "Zamek A",
-//     IsConfirmed: true,
-//   },
-// ];
+import OrderDetailsComponet from "../OrderDetailsComponent/OrderDetailsComponet";
 
 type AssortmentTypes =
   | "assoTypeA"
@@ -60,22 +14,24 @@ type AssortmentTypes =
   | "assoTypeE"
   | "assoTypeF";
 
-type OrdersData = {
+const assortmentTypes = {};
+
+interface OrdersData {
   id: string;
   assoType: AssortmentTypes;
   timeFrames: { seconds: number; nanoseconds: number }[];
   deliveryTime: number;
   pickUpTime: number;
   deliveryType: string;
-};
+}
 
-type ConfirmedOrders = {
-  id: string | null;
-  confirmed: boolean;
-};
+interface ConfirmedOrders {
+  id: string;
+  adminConfirmation: boolean;
+}
 
-type OrdersPersonalDetails = {
-  id: string | null;
+interface OrdersPersonalDetails {
+  id: string;
   addressZipCode: string;
   addressCity: string;
   addressStreet: string;
@@ -83,14 +39,38 @@ type OrdersPersonalDetails = {
   clientName: string;
   clientSurname: string;
   phoneNr: string;
-  paymentType: string | null;
-};
+  email: string;
+}
 
-const HomeOrdersComponet: React.FC = () => {
+export interface FullOrder {
+  id: string;
+  addressZipCode: string;
+  addressCity: string;
+  addressStreet: string;
+  addressHouseNumber: string;
+  clientName: string;
+  clientSurname: string;
+  phoneNr: string;
+  email: string;
+  assoType: AssortmentTypes;
+  timeFrames: { seconds: number; nanoseconds: number }[];
+  deliveryTime: number;
+  pickUpTime: number;
+  deliveryType: string;
+  adminConfirmation: boolean | undefined;
+}
+
+const HomeOrdersComponent: React.FC = () => {
   const [ordersData, setOrdersData] = useState<OrdersData[]>([]);
+  const [ordersPersonalData, setOrdersPersonalData] = useState<
+    OrdersPersonalDetails[]
+  >([]);
   const [confirmedOrders, setConfirmedOrders] = useState<ConfirmedOrders[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [fullOrder, setFullOrder] = useState<FullOrder | undefined>();
 
   useEffect(() => {
+    if (fullOrder !== undefined) return;
     const ordersCollection = collection(firestore, "orders");
     const promiseOrdersCollection = getDocs(ordersCollection);
 
@@ -102,7 +82,7 @@ const HomeOrdersComponet: React.FC = () => {
       "ordersPersonalDetails"
     );
     const promiseOrdersPersonalDetails = getDocs(ordersPersonalDetails);
-
+    setIsLoading(true);
     Promise.all([
       promiseOrdersCollection,
       promiseConfirmedOrdersCollection,
@@ -128,7 +108,7 @@ const HomeOrdersComponet: React.FC = () => {
         } as ConfirmedOrders;
       });
 
-      const ordersDetailsData = snapshot3.docs.map((doc) => {
+      const ordersPersonalData = snapshot3.docs.map((doc) => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -136,10 +116,14 @@ const HomeOrdersComponet: React.FC = () => {
         } as OrdersPersonalDetails;
       });
 
+      console.log(ordersPersonalData);
+
       setOrdersData(ordersData);
       setConfirmedOrders(confirmedOrdersData);
+      setOrdersPersonalData(ordersPersonalData);
+      setIsLoading(false);
     });
-  }, []);
+  }, [fullOrder]);
 
   // formatDate
 
@@ -208,18 +192,21 @@ const HomeOrdersComponet: React.FC = () => {
       headerName: "Rodzaj asso",
       type: "string",
       width: 110,
-      editable: true,
+      editable: false,
     },
 
     {
-      field: "IsConfirmed",
+      field: "adminConfirmation",
       headerName: "Zatwierdzone zamówienie",
       type: "boolean",
       width: 200,
-      editable: true,
+      editable: false,
     },
   ];
   const rows = ordersData.map((order) => {
+    const adminOrderConfirmation = confirmedOrders.find(
+      (confirmation) => confirmation.id === order.id
+    );
     return {
       id: order.id,
       startDate: getFormattedDate(order.timeFrames[0].seconds * 1000),
@@ -227,12 +214,52 @@ const HomeOrdersComponet: React.FC = () => {
       deliveryTime: getHourFromTimestamp(order.deliveryTime),
       pickUpTime: getHourFromTimestamp(order.pickUpTime),
       assoType: order.assoType,
-      IsConfirmed: true,
+      adminConfirmation: adminOrderConfirmation
+        ? adminOrderConfirmation.adminConfirmation
+        : false,
     };
   });
 
+  const orderForm = (id: string) => {
+    const generalInformation = ordersData.find((general) => general.id === id);
+    if (!generalInformation) {
+      throw new Error("missing generalData");
+    }
+    const personalInformation = ordersPersonalData.find(
+      (personal) => personal.id === id
+    );
+    if (!personalInformation) {
+      throw new Error("missing personalData");
+    }
+
+    const adminConfirmation = confirmedOrders.find(
+      (confirmation) => confirmation.id === id
+    );
+
+    setFullOrder({
+      id: personalInformation.id,
+      addressZipCode: personalInformation.addressZipCode,
+      addressCity: personalInformation.addressCity,
+      addressStreet: personalInformation.addressStreet,
+      addressHouseNumber: personalInformation.addressHouseNumber,
+      clientName: personalInformation.clientName,
+      clientSurname: personalInformation.clientSurname,
+      phoneNr: personalInformation.phoneNr,
+      email: personalInformation.email,
+      assoType: generalInformation.assoType,
+      timeFrames: generalInformation.timeFrames,
+      deliveryTime: generalInformation.deliveryTime,
+      pickUpTime: generalInformation.pickUpTime,
+      deliveryType: generalInformation.deliveryType,
+      adminConfirmation: adminConfirmation
+        ? adminConfirmation.adminConfirmation
+        : false,
+    });
+  };
+
   return (
-    <div>
+    <div className="table-container">
+      {isLoading && <div>Loading...</div>}
       <Box sx={{ height: 400, width: "100%" }}>
         <DataGrid
           rows={rows}
@@ -245,13 +272,19 @@ const HomeOrdersComponet: React.FC = () => {
             },
           }}
           pageSizeOptions={[5]}
-          onCellClick={() => console.log()}
-          // checkboxSelection
-          // disableRowSelectionOnClick={false}
+          onRowClick={(row: any) => {
+            orderForm(row.id);
+          }}
         />
       </Box>
+      {fullOrder && (
+        <OrderDetailsComponet
+          setFullOrder={setFullOrder}
+          orderDetails={fullOrder}
+        />
+      )}
     </div>
   );
 };
 
-export default HomeOrdersComponet;
+export default HomeOrdersComponent;

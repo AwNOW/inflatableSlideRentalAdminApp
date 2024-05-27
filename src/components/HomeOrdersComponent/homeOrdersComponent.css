@@ -1,0 +1,4 @@
+.css-n3fyjk-MuiDataGrid-root .MuiDataGrid-cell,
+.MuiDataGrid-root .MuiDataGrid-cell--textLeft {
+  cursor: pointer !important;
+}

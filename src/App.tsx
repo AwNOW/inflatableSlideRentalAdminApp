@@ -1,15 +1,14 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
-import { Route, Routes } from "react-router-dom";
+// import { Route, Routes } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { signInWithGoogle } from "./firebaseConfig";
 import HomeOrdersComponent from "./components/HomeOrdersComponent/HomeOrdersComponent";
-import OrderDetailsComponent from "./components/OrderDetailsComponet/OrderDetailsComponet";
 
 const App: React.FC = () => {
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState<
-    "loading" | "logged" | "loggedout"
+    "loading" | "logged" | "notlogged"
   >("loading");
 
   useEffect(() => {
@@ -17,7 +16,7 @@ const App: React.FC = () => {
       if (user) {
         setIsLoggedIn("logged");
       } else {
-        setIsLoggedIn("loggedout");
+        setIsLoggedIn("notlogged");
       }
     });
 
@@ -34,17 +33,11 @@ const App: React.FC = () => {
       {isLoggedIn === "loading" ? (
         <p>Loading...</p>
       ) : isLoggedIn === "logged" ? (
-        <Routes>
-          <Route path="/" element={<HomeOrdersComponent />} />
-          <Route
-            path={"/details/:orderId"}
-            element={<OrderDetailsComponent />}
-          />
-        </Routes>
+        <HomeOrdersComponent />
       ) : (
         <button
           className="login-with-google-btn"
-          onClick={() => signInWithGoogle()}
+          onClick={handleSignIn}
         >
           Sign In With Google
         </button>
