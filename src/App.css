@@ -1,6 +1,10 @@
 .App {
-  text-align: center;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
  /* btn-log-in */
 .login-with-google-btn {
   transition: background-color .3s, box-shadow .3s;
@@ -22,6 +26,7 @@
 
   &:hover {
     box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .25);
+    cursor: pointer;
   }
 
   &:active {
@@ -36,4 +41,27 @@
       0 0 0 3px #c8dafc;
   }
 
+}
+
+.button-primary {
+  margin-right: 20px;
+  border-radius: 34px;
+  border: none;
+  padding: 12px 20px;
+  background: #34b1ca;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  color: rgb(255, 253, 253);
+}
+
+.yellow {
+  color: black;
+  background: #ffe44f;
+}
+
+.red {
+  color: rgb(244, 239, 239);
+  background: #f63535;
 }
