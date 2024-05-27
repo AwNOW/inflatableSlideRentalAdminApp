@@ -146,12 +146,12 @@ const OrderDetailsComponent: React.FC<OrderDetailsComponentProps> = ({
     await batch.commit();
   };
 
-
   const handleDelete = async () => {
     const batch = writeBatch(firestore);
     batch.delete(doc(firestore, "orders", orderDetails.id));
     batch.delete(doc(firestore, "confirmedOrders", orderDetails.id));
     batch.delete(doc(firestore, "ordersPersonalDetails", orderDetails.id));
+    await batch.commit();
   };
 
   // VALIDATION //
@@ -639,43 +639,43 @@ const OrderDetailsComponent: React.FC<OrderDetailsComponentProps> = ({
                     />
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="checkbox-statement">
-              <Field
-                as={Checkbox}
-                name="adminConfirmation"
-                checked={values.adminConfirmation}
-              />
-              Potwierdzenie zamówienia.
-              <ErrorMessage
-                name="adminConfirmation"
-                component="div"
-                className="validationError"
-              />
-            </div>
-            <div className="lower-form-content">
-              <button className="button-primary" type="submit">
-                REZERWUJ
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFullOrder(undefined);
-                }}
-              >
-                Anuluj
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleDelete();
-                  setFullOrder(undefined);
-                }}
-              >
-                Usuń
-              </button>
+                <div className="checkbox-statement">
+                  <Field
+                    as={Checkbox}
+                    name="adminConfirmation"
+                    checked={values.adminConfirmation}
+                  />
+                  Potwierdzenie zamówienia.
+                  <ErrorMessage
+                    name="adminConfirmation"
+                    component="div"
+                    className="validationError"
+                  />
+                </div>
+                <button className="button-primary" type="submit">
+                  ZATWIERDŹ
+                </button>
+                <button
+                  className="button-primary yellow"
+                  type="button"
+                  onClick={() => {
+                    setFullOrder(undefined);
+                  }}
+                >
+                  Anuluj
+                </button>
+                <button
+                  className="button-primary red"
+                  type="button"
+                  onClick={() => {
+                    handleDelete();
+                    setFullOrder(undefined);
+                  }}
+                >
+                  Usuń
+                </button>
+              </div>
             </div>
           </Form>
         )}
