@@ -14,7 +14,14 @@ type AssortmentTypes =
   | "assoTypeE"
   | "assoTypeF";
 
-const assortmentTypes = {};
+const assortmentTypesNames = {
+  assoTypeA: "Zamek La Palma",
+  assoTypeB: "Zamek Combo Slide",
+  assoTypeC: "Zamek Żyrafa",
+  assoTypeD: "Zamek Kangurek",
+  assoTypeE: "Zamek Słonik Maksa",
+  assoTypeF: "Zamek Bajtel",
+};
 
 interface OrdersData {
   id: string;
@@ -177,21 +184,21 @@ const HomeOrdersComponent: React.FC = () => {
       field: "deliveryTime",
       headerName: "Godzina odbioru/dostawy",
       type: "string",
-      width: 200,
+      width: 150,
       editable: false,
     },
     {
       field: "pickUpTime",
       headerName: "Godzina zwrotu/odbioru",
       type: "string",
-      width: 200,
+      width: 150,
       editable: false,
     },
     {
       field: "assoType",
-      headerName: "Rodzaj asso",
+      headerName: "Rodzaj assortymentu",
       type: "string",
-      width: 110,
+      width: 180,
       editable: false,
     },
 
@@ -216,7 +223,7 @@ const HomeOrdersComponent: React.FC = () => {
       endDate: getFormattedDate(order.timeFrames[1].seconds * 1000),
       deliveryTime: getHourFromTimestamp(order.deliveryTime),
       pickUpTime: getHourFromTimestamp(order.pickUpTime),
-      assoType: order.assoType,
+      assoType: assortmentTypesNames[order.assoType],
       adminConfirmation: adminOrderConfirmation
         ? adminOrderConfirmation.adminConfirmation
         : false,
