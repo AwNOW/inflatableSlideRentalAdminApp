@@ -23,6 +23,7 @@ interface OrdersData {
   deliveryTime: number;
   pickUpTime: number;
   deliveryType: string;
+  currentDate: { seconds: number; nanoseconds: number };
 }
 
 interface ConfirmedOrders {
@@ -94,6 +95,7 @@ const HomeOrdersComponent: React.FC = () => {
 
       const ordersData = snapshot1.docs.map((doc) => {
         const data = doc.data();
+        console.log(data);
         return {
           id: doc.id,
           ...data,
@@ -115,9 +117,6 @@ const HomeOrdersComponent: React.FC = () => {
           ...data,
         } as OrdersPersonalDetails;
       });
-
-      console.log(ordersPersonalData);
-
       setOrdersData(ordersData);
       setConfirmedOrders(confirmedOrdersData);
       setOrdersPersonalData(ordersPersonalData);
@@ -159,6 +158,7 @@ const HomeOrdersComponent: React.FC = () => {
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
     { field: "id", headerName: "ID", width: 90 },
+    { field: "currentDate", headerName: "Data zgłoszenia", width: 150 },
     {
       field: "startDate",
       headerName: "Początek rezerwacji",
@@ -199,16 +199,19 @@ const HomeOrdersComponent: React.FC = () => {
       field: "adminConfirmation",
       headerName: "Zatwierdzone zamówienie",
       type: "boolean",
-      width: 200,
+      width: 90,
       editable: false,
     },
   ];
   const rows = ordersData.map((order) => {
+    console.log(order);
     const adminOrderConfirmation = confirmedOrders.find(
       (confirmation) => confirmation.id === order.id
     );
+
     return {
       id: order.id,
+      currentDate: getFormattedDate(order.currentDate.seconds * 1000),
       startDate: getFormattedDate(order.timeFrames[0].seconds * 1000),
       endDate: getFormattedDate(order.timeFrames[1].seconds * 1000),
       deliveryTime: getHourFromTimestamp(order.deliveryTime),
