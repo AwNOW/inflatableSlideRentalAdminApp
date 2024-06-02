@@ -78,14 +78,12 @@ const OrderDetailsComponent: React.FC<OrderDetailsComponentProps> = ({
   setFullOrder,
   orderDetails,
 }) => {
-  console.log(orderDetails);
 
   const handleFormSubmit: (
     values: OrderForm,
     formikHelpers: FormikHelpers<OrderForm>
   ) => void | Promise<void> = async (values, { setSubmitting, resetForm }) => {
     await setDatabaseValues(values);
-    console.log(values);
     setSubmitting(false);
     setFullOrder(undefined);
   };
